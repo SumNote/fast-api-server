@@ -7,7 +7,7 @@ import cv2
 # Load easyocr reader 
 reader = easyocr.Reader(['ko', 'en'], gpu=True)
 
-
+# 디버그용 - 화면에 이미지 출력
 def show_image(image):
     print('call show_image')
 
@@ -19,6 +19,8 @@ def show_image(image):
     return
 
 
+# 이미지에서 사용자가 빨간색으로 밑줄친 영역 감지
+# 키워드 데이터 추출
 def detect_annotation_object(image):
     print('call detect_annotation_object')
 
@@ -46,7 +48,7 @@ def detect_annotation_object(image):
 
     return annotation_data
 
-
+# 
 def draw_ocr_result(image, main_text_area, text_data, annotation_area):
     print('call draw_ocr_result')
 
@@ -101,6 +103,7 @@ def extract_main_text_using_pitch(text_data):
     return main_text_data
 
 
+# 모폴로지 연산을 사용하여 이미지에서 텍스트의 영역을 탐지
 def detect_text_area(image):
     print('call detect_text_area')
 
@@ -126,6 +129,8 @@ def detect_text_area(image):
     return main_text_area
 
 
+# 시작 부분
+# 저장된 이미지의 경로를 불러와서 해당 이미지로 ocr을 수행
 def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
     print("call do_ocr")
 
@@ -154,11 +159,12 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
         
         text_data.extend(data)
         
+        # 디버그 모드
         if debug:
             print(f'Individual OCR Time : {time() - tmp_time:.2f}s', data)
             text_image = draw_ocr_result(text_image, [], data, [])
-            show_image(text_image)
     
+    # ocr에 걸린 시간 확인용
     print(f'OCR Time : {time() - ocr_time_start:.2f}s')
 
     if len(text_data) == 0:
@@ -208,7 +214,6 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
     print('end do_ocr')
 
     return text, annotation_text
-
 
 # # Example Code
 # image_path = '/Users/gyeongmin/Downloads/img.jpg'
