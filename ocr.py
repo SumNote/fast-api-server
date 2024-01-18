@@ -26,7 +26,7 @@ def detect_annotation_object(image):
 
     # Extract Red image
     hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-    mask = cv2.inRange(hsv, (160, 200, 0), (179, 255, 255))
+    mask = cv2.inRange(hsv, (40, 40, 0), (179, 255, 255))
     red_image = cv2.bitwise_and(image, image, mask=mask)
 
     # Convert red image to gray image
@@ -48,7 +48,6 @@ def detect_annotation_object(image):
 
     return annotation_data
 
-# 
 def draw_ocr_result(image, main_text_area, text_data, annotation_area):
     print('call draw_ocr_result')
 
@@ -112,11 +111,11 @@ def detect_text_area(image):
     _, bin_image = cv2.threshold(gray_img, 127, 255, cv2.THRESH_BINARY_INV)
 
     # Morphology - Closing
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (500 , 50))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (300 , 50))
     closed_image = cv2.morphologyEx(bin_image, cv2.MORPH_CLOSE, kernel)
 
     # Morphology - Dilation
-    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (500, 50))
+    kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (300, 50))
     dilated_image = cv2.dilate(closed_image, kernel, iterations=1)
 
     _, _, stats, _ = cv2.connectedComponentsWithStats(dilated_image)
@@ -129,7 +128,7 @@ def detect_text_area(image):
     return main_text_area
 
 
-# 시작 부분
+# start ocr
 # 저장된 이미지의 경로를 불러와서 해당 이미지로 ocr을 수행
 def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
     print("call do_ocr")
@@ -142,6 +141,8 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
 
     # Read text
     ocr_time_start = time()
+    
+    # call func detect_text_area 
     main_text_area = detect_text_area(image)
     
     text_data = []
@@ -158,13 +159,13 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
         data = reader.readtext(text_image)
         
         text_data.extend(data)
-        
-        # 디버그 모드
+
+        # debug mode
         if debug:
             print(f'Individual OCR Time : {time() - tmp_time:.2f}s', data)
             text_image = draw_ocr_result(text_image, [], data, [])
     
-    # ocr에 걸린 시간 확인용
+    # check ocr time
     print(f'OCR Time : {time() - ocr_time_start:.2f}s')
 
     if len(text_data) == 0:
@@ -175,6 +176,7 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
     # text_data = extract_main_text_using_pitch(text_data)
 
     # Detect annotation (Rule-Based Method)
+    # call func detect_annotation_object
     annotation_area = detect_annotation_object(image)
 
     # Get height of textbox
