@@ -217,16 +217,17 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
 
     return text, annotation_text
 
-# # Example Code
-# image_path = '/Users/gyeongmin/Downloads/img.jpg'
-# text, annotation = do_ocr(
-#     image_path,
-#     pyramid_level=2,
-#     remove_text=('Competitive Programming',), 
-#     debug=False
-# )
-# print('--------main text---------')
-# print(text)
-# print('------annotation ocr------')
-# print(annotation)
-# print('--------------------------')
+# Example Code
+if __name__=="__main__":
+    image_path = './images/'
+    text, annotation = do_ocr(
+        image_path,
+        pyramid_level=2,
+        remove_text=('Competitive Programming',), 
+        debug=False
+    )
+    print('--------main text---------')
+    print(text)
+    print('------annotation ocr------')
+    print(annotation)
+    print('--------------------------')
