@@ -2,7 +2,9 @@ from typing import Union # 테스트용
 from fastapi import FastAPI, File, UploadFile
 from pydantic import BaseModel
 import json,os,uuid
+from ocr import do_ocr
 
+# uvicorn main:app --reload 
 app = FastAPI()
 
 # Server Health Check
@@ -21,12 +23,27 @@ def read_root():
 @app.post("/image-to-text")
 async def imageToText(image : UploadFile): 
     UPLOAD_DIR = "./images" # 이미지 저장 경로
+
     image_content = await image.read()
     filename = f"{str(uuid.uuid4())}.jpg" # 이미지 이름 설정
-    with open(os.path.join(UPLOAD_DIR, filename), "wb") as fp:
-        fp.write(image_content)  # 서버 로컬 스토리지에 이미지 저장
 
-    return genPageFail
+    try:
+        with open(os.path.join(UPLOAD_DIR, filename), "wb") as fp:
+            fp.write(image_content)  # 서버 로컬 스토리지에 이미지 저장
+
+        image_path = f"{UPLOAD_DIR}/{filename}" # 저장된 이미지 경로
+
+        # OCR
+        result,annotation = do_ocr(image_path)
+        print("result = ", result) # ocr을 통해 추출한 텍스트
+        print("annotaion = ",annotation) # ocr을 통해 추출한 키워드
+
+        # gpt api
+        # LangChain의 프롬프트 사용해서 gpt api를 통한 노트 탬플릿 생성 수행
+    except Exception as e:
+        print(f"Error saving image: {e}")
+
+    return genPageFail # 실패시 리턴
 
 # 문제 1개 생성
 '''
@@ -38,6 +55,16 @@ def generateProblem():
     return genQuizFail
 
 
+# ocr 테스트용 api
+@app.get("/ocr-test")
+def ocrTest():
+    result,annotation = do_ocr("./images/book.jpg")
+    print("result : " + result)
+    
+    response_data = {
+        "result" : result
+    }
+    return response_data
 
 
 # 페이지 생성 실패시 반환
