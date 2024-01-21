@@ -50,7 +50,7 @@ async def imageToText(image : UploadFile):
 - 노트 한 페이지에 대한 텍스트 전달받기
 - 전달받은 텍스트 바탕으로 퀴즈 생성하여 반환
 '''
-@app.get("/gen-problem")
+@app.post("/gen-problem")
 def generateProblem():
     return genQuizFail
 
