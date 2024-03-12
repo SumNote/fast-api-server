@@ -96,32 +96,6 @@ def ocrTest():
 
 
 # pdf multipart로 전달 받아서 텍스트 추출
-# 테스트용
-# pip install python-multipart
-@app.post("/pdf-to-text-test")
-async def imageToText(pdf : UploadFile): 
-    UPLOAD_DIR = "./pdf" # pdf 파일 저장 경로
-
-    pdf_file = await pdf.read()
-    filename = f"{str(uuid.uuid4())}.pdf" # pdf 파일 이름 생성
-
-    try:
-        with open(os.path.join(UPLOAD_DIR, filename), "wb") as fp:
-            fp.write(pdf_file)  # 서버 로컬 스토리지에 pdf파일 저장
-
-        file_path = f"{UPLOAD_DIR}/{filename}" # 저장된 pdf파일 경로
-
-        # pdf에서 글자 추출
-        result = pdf_to_text(file_path)
-        print("result = ", result) # pdf에서 추출한 텍스트들
-
-    except Exception as e:
-        print(f"Error saving image: {e}")
-
-    return genPageFail # 실패시 리턴
-
-
-# pdf multipart로 전달 받아서 텍스트 추출
 # pip install python-multipart
 @app.post("/pdf-to-text")
 async def imageToText(pdf : UploadFile): 
@@ -139,10 +113,10 @@ async def imageToText(pdf : UploadFile):
         # pdf에서 글자 추출
         result = pdf_to_text(file_path)
         print("result = ", result) # pdf에서 추출한 텍스트들
-
+        
         # gpt api
         # get_sum에 요약할 내용 입력 + 키워드 전달
-        sum_result = gpt_sum(result,[]) # 키워드는 존재하지 않음
+        sum_result = gpt_sum(result,[]) # pdf로 파일 읽을 경우 annotaion은 없음
 
         # 정규 표현식을 사용하여 제목과 요약 추출
         title_match = re.search(r'\[(.*?)\]', sum_result)
