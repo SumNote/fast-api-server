@@ -138,7 +138,7 @@ async def imageToText(pdf : UploadFile):
             'summary' : summary,
             'sum_result' : sum_result
         }
-        
+    
         return response_data
 
     except Exception as e:

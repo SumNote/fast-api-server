@@ -1,7 +1,6 @@
 import PyPDF2 # pip install PyPDF2
 import os
 # pdf에서 글자 추출
-# 라이브러리 사용 예정
 def pdf_to_text(file_path):
     text = ""  # pdf 파일의 텍스트 정보 저장용
     # title = author = None  # 문서 정보를 저장할 변수 초기화
@@ -25,4 +24,12 @@ def pdf_to_text(file_path):
     except Exception as e:
         print("An error occurred:", e)
         return False
-    return text # 우선 텍스트만 리턴
+    
+    # pdf 파일 삭제 -> 메모리 차지 방지용
+    try:
+        os.remove(file_path)
+        print(f"File {file_path} has been deleted successfully.")
+    except Exception as e:
+        print(f"Error occurred while deleting file {file_path}: {e}")
+        
+    return text # pdf파일에서 추출한 텍스트 리턴
