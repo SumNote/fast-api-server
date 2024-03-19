@@ -1,13 +1,8 @@
 import json
 from openai import OpenAI
 
-# Load your API key from an environment variable or secret management service
-# BASE_DIR = Path(__file__).resolve().parent.parent
-# secret_file = BASE_DIR / 'secrets.json'
-# Road API Key from secret.json
-
 # API Key Load
-with open('./secret.json') as f:
+with open('./secrets.json') as f:
     secrets = json.load(f)
     
 client = OpenAI(
@@ -218,11 +213,25 @@ quiz_result_example3 = '''
 
 ######### 테스트 ##########
 # 노트 생성 테스트용
-test_data1 = '''
+note_test_data1 = '''
 $데이터 베이스$, 줄여서 DB 특정 다수의 이용자들에게 필요한 정보를 제공한다든지 조직 내에서 필요로 하는 정보를 체계적으로 축적하여 그 조직 내의 이용자에게 필요한 정보를 제공하는 정보 서비스 기관의 심장부에 해당된다.
 일반적으로 응용 프로그램과는 별개의 미들웨어[1]를 통해서 관리된다. 
 데이터베이스 자체만으로는 거의 아무 것도 못하기 때문에 그걸 관리하는 시스템과 통합돼 제공되며 따라서 정확한 명칭은 $데이터베이스 관리 시스템$(DBMS)[2]이 된다. 
 데이터베이스만 제공되는 건 CSV같이 아주 단순한 데이터에 국한되는데 이걸 직접 사용하는 경우는 많지 않고 이런 데이터를 RAW데이터로 간주해 다른 DBMS시스템에 적재하고 사용하는 게 일반적이다.
+'''
+
+note_test_data1_annotaion = ["데이터베이스","데이터베이스 관리 시스템"]
+
+quiz_test_data1 = '''
+[태양계 행성들의 특징]
+#1 수성 : 태양에 가장 가까운 행성, 극단적인 온도 변화를 겪음
+#2 금성 : 태양계에서 가장 뜨거운 행성, 이산화탄소로 이루어진 두꺼운 대기층이 있음
+#3 지구 : 생명체가 존재하는 유일한 행성, 대기 중 산소와 물이 풍부함
+#4 화성 : 붉은 색을 띠는 '붉은 행성', 물이 존재했을 가능성이 있음
+#5 목성 : 태양계에서 가장 큰 행성, 강력한 자기장을 가짐
+#6 토성 : 아름다운 고리가 특징인 행성, 가벼운 기체로 이루어져 있음
+#7 천왕성 : 푸른색을 띠는 가스 행성, 이상적인 축 기울기로 인해 계절 변화가 극단적임
+#8 해왕성 : 천왕성과 비슷한 가스 행성이지만, 더 강력한 바람이 불음
 '''
 
 # 노트 생성
@@ -267,12 +276,14 @@ def gpt_sum(data,annotation): # annotation은 배열 형태로 제공되어야�
     # 양쪽 끝 공백 제거
     result = completion.choices[0].message.content.lstrip() 
 
-    print(f"GPT : {result}")
+    print("=============NOTE RESULT================")
+    print(result)
+    print("=======================================")
     return result
 
 # 퀴즈 생성
 def gpt_pro(data):
-    # 역할 부여
+    # 역할 부여 + 예시문 제공
     messages = [
         {
             "role" : "system",
@@ -321,5 +332,15 @@ def gpt_pro(data):
     # 양쪽 끝 공백 제거
     result = completion.choices[0].message.content.lstrip() 
 
-    print(f"GPT Quiz: {result}")
+    print("=============QUIZ RESULT================")
+    print(result)
+    print("=======================================")
     return result
+
+
+# 테스트용
+if __name__ == "__main__":
+    # 노트 생성 테스트
+    gpt_sum(note_test_data1,note_test_data1_annotaion)
+    # 퀴즈 생성 테스트
+    gpt_pro(quiz_test_data1)
