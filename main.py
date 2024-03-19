@@ -1,11 +1,10 @@
 from typing import Union # 테스트용
-from fastapi import FastAPI, File, UploadFile
-from pydantic import BaseModel
-import json,os,uuid
+from fastapi import FastAPI,UploadFile, Request
+import os,uuid
 from ocr import do_ocr
 from pdf_reader import pdf_to_text # pdf에서 text추출
 from gpt_api import gpt_sum, gpt_pro
-import re
+import re,difflib
 
 # uvicorn main:app --reload 
 app = FastAPI()
@@ -14,6 +13,24 @@ app = FastAPI()
 @app.get("/")
 def read_root():
     return "FastAPI Server On!!"
+
+
+# GPT가 번호를 함께 생성하지 않는 경우 방지용
+# 유사도 가장 높은 번호 찾기
+def closest_answer(answer, selections):
+    max_ratio = -1
+    index = -1
+    
+    for i, sel in enumerate(selections):
+        s = difflib.SequenceMatcher(None, answer, sel)
+        ratio = s.ratio()
+        
+        if ratio > max_ratio:
+            max_ratio = ratio
+            index = i + 1
+            
+    return str(index)
+
 
 # 이미지 multipart로 전달 받아서 텍스트 추출
 # pip install python-multipart
@@ -79,7 +96,56 @@ async def imageToText(image : UploadFile):
 - 전달받은 텍스트 바탕으로 퀴즈 생성하여 반환
 '''
 @app.post("/gen-problem")
-def generateProblem():
+async def generateProblem(request: Request):
+    try:
+        # 요청 본문을 바이트 문자열로 읽음
+        body_bytes = await request.body()
+        # 바이트 문자열을 문자열로 디코딩 (UTF-8 사용)
+        content = body_bytes.decode('utf-8')
+        
+        print("===========content==============")
+        print(content)
+        
+        problem_result = gpt_pro(content)
+        
+        # 각 질문을 분리하기 위한 패턴
+        problems = re.split(r'\n{2,}', problem_result)
+        ques, selec, ans, comment = "", "", "", ""
+
+        for i, problem in enumerate(problems):
+            print(f"problem #{i + 1}: {problem}")
+            pattern = r'&([^&]+)&([\s\S]*?)%([^%]+)%([^@]+)@([\s\S]*)'
+            match = re.search(pattern, problem)
+
+            if match:
+                question = match.group(1).strip()
+                selections = [sel.strip() for sel in match.group(2).split('#') if sel.strip()]
+                answer = match.group(3).strip()
+                
+                # GPT가 번호를 알려주지 않는 상태 방지
+                if not answer.isdigit():
+                    answer = closest_answer(answer, selections)
+                else:
+                    answer = re.search(r'(\d+)', answer).group(1)
+
+                commentary = match.group(5).replace('@', '').strip()
+                ques += f"[{question}]"
+                selec += "[" + "][".join(selections) + "]"
+                ans += f"[{answer}]"
+                comment += f"[{commentary}]"
+        
+        response_data = {
+            "question": ques,
+            "selections": selec,
+            "answer": ans,
+            "commentary": comment
+        }
+        
+        return response_data
+    
+    except Exception as e:
+        print(f"Error saving image: {e}")
+        
     return genQuizFail
 
 
@@ -97,8 +163,9 @@ def ocrTest():
 
 # pdf multipart로 전달 받아서 텍스트 추출
 # pip install python-multipart
+# 클라이언트로부터 pdf라는 키 값으로 pdf파일을 전달 받아야 한다.
 @app.post("/pdf-to-text")
-async def imageToText(pdf : UploadFile): 
+async def pdfToText(pdf : UploadFile): 
     UPLOAD_DIR = "./pdf" # pdf 파일 저장 경로
 
     pdf_file = await pdf.read()
@@ -116,7 +183,7 @@ async def imageToText(pdf : UploadFile):
         
         # gpt api
         # get_sum에 요약할 내용 입력 + 키워드 전달
-        sum_result = gpt_sum(result,[]) # pdf로 파일 읽을 경우 annotaion은 없음
+        sum_result = gpt_sum(result,[]) # pdf로 파일 읽을 경우 annotaion은 없음(빈 배열로 설정)
 
         # 정규 표현식을 사용하여 제목과 요약 추출
         title_match = re.search(r'\[(.*?)\]', sum_result)
@@ -145,6 +212,8 @@ async def imageToText(pdf : UploadFile):
         print(f"Error saving image: {e}")
 
     return genPageFail # 실패시 리턴
+
+
 
 
 # 페이지 생성 실패시 반환
