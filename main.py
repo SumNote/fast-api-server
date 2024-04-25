@@ -5,6 +5,7 @@ from ocr import do_ocr
 from pdf_reader import pdf_to_text # pdf에서 text추출
 from gpt_api import gpt_sum, gpt_pro
 import re,difflib
+import uvicorn
 
 # uvicorn main:app --reload 
 app = FastAPI()
@@ -231,3 +232,7 @@ genQuizFail = {
     "answer": "[fail]",
     "commentary" : "[fail]"
 }
+
+
+if __name__ == "__main__" :
+	uvicorn.run(app)
