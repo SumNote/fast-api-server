@@ -96,6 +96,58 @@ async def imageToText(image : UploadFile):
 - 노트 한 페이지에 대한 텍스트 전달받기
 - 전달받은 텍스트 바탕으로 퀴즈 생성하여 반환
 '''
+# @app.post("/gen-problem")
+# async def generateProblem(request: Request):
+#     try:
+#         # 요청 본문을 바이트 문자열로 읽음
+#         body_bytes = await request.body()
+#         # 바이트 문자열을 문자열로 디코딩 (UTF-8 사용)
+#         content = body_bytes.decode('utf-8')
+        
+#         print("===========content==============")
+#         print(content)
+        
+#         problem_result = gpt_pro(content)
+        
+#         # 각 질문을 분리하기 위한 패턴
+#         problems = re.split(r'\n{2,}', problem_result)
+#         ques, selec, ans, comment = "", "", "", ""
+
+#         for i, problem in enumerate(problems):
+#             print(f"problem #{i + 1}: {problem}")
+#             pattern = r'&([^&]+)&([\s\S]*?)%([^%]+)%([^@]+)@([\s\S]*)'
+#             match = re.search(pattern, problem)
+
+#             if match:
+#                 question = match.group(1).strip()
+#                 selections = [sel.strip() for sel in match.group(2).split('#') if sel.strip()]
+#                 answer = match.group(3).strip()
+                
+#                 # GPT가 번호를 알려주지 않는 상태 방지
+#                 if not answer.isdigit():
+#                     answer = closest_answer(answer, selections)
+#                 else:
+#                     answer = re.search(r'(\d+)', answer).group(1)
+
+#                 commentary = match.group(5).replace('@', '').strip()
+#                 ques += f"[{question}]"
+#                 selec += "[" + "][".join(selections) + "]"
+#                 ans += f"[{answer}]"
+#                 comment += f"[{commentary}]"
+        
+#         response_data = {
+#             "question": ques,
+#             "selections": selec,
+#             "answer": ans,
+#             "commentary": comment
+#         }
+        
+#         return response_data
+    
+#     except Exception as e:
+#         print(f"Error saving image: {e}")
+        
+#     return genQuizFail
 @app.post("/gen-problem")
 async def generateProblem(request: Request):
     try:
@@ -111,10 +163,9 @@ async def generateProblem(request: Request):
         
         # 각 질문을 분리하기 위한 패턴
         problems = re.split(r'\n{2,}', problem_result)
-        ques, selec, ans, comment = "", "", "", ""
+        data_list = []
 
-        for i, problem in enumerate(problems):
-            print(f"problem #{i + 1}: {problem}")
+        for problem in problems:
             pattern = r'&([^&]+)&([\s\S]*?)%([^%]+)%([^@]+)@([\s\S]*)'
             match = re.search(pattern, problem)
 
@@ -130,16 +181,19 @@ async def generateProblem(request: Request):
                     answer = re.search(r'(\d+)', answer).group(1)
 
                 commentary = match.group(5).replace('@', '').strip()
-                ques += f"[{question}]"
-                selec += "[" + "][".join(selections) + "]"
-                ans += f"[{answer}]"
-                comment += f"[{commentary}]"
+                
+                data = {
+                    "question": question,
+                    "selection": selections,
+                    "answer": answer,
+                    "commentary": commentary
+                }
+                
+                data_list.append(data)
         
         response_data = {
-            "question": ques,
-            "selections": selec,
-            "answer": ans,
-            "commentary": comment
+            "data": data_list,
+            "count": len(data_list)
         }
         
         return response_data
@@ -148,7 +202,6 @@ async def generateProblem(request: Request):
         print(f"Error saving image: {e}")
         
     return genQuizFail
-
 
 # ocr 테스트용 api
 @app.get("/ocr-test")
