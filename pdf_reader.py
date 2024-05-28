@@ -1,5 +1,6 @@
 import PyPDF2 # pip install PyPDF2
 import os
+
 # pdf에서 글자 추출
 def pdf_to_text(file_path):
     text = ""  # pdf 파일의 텍스트 정보 저장용
@@ -31,5 +32,5 @@ def pdf_to_text(file_path):
         print(f"File {file_path} has been deleted successfully.")
     except Exception as e:
         print(f"Error occurred while deleting file {file_path}: {e}")
-        
+    
     return text # pdf파일에서 추출한 텍스트 리턴

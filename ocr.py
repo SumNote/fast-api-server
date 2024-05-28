@@ -1,14 +1,18 @@
 from PIL import ImageFont, ImageDraw, Image
 from time import time
 import matplotlib.pyplot as plt
-import easyocr
-import cv2
+import easyocr, cv2, logging
+
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("ocr")
+
 
 # Load easyocr reader 
 reader = easyocr.Reader(['ko', 'en'], gpu=True)
 
 # 디버그용 - 화면에 이미지 출력
 def show_image(image):
+    logger.debug('Displaying image')
     print('call show_image')
 
     plt.figure(figsize=(10, 8))
@@ -22,6 +26,7 @@ def show_image(image):
 # 이미지에서 사용자가 빨간색으로 밑줄친 영역 감지
 # 키워드 데이터 추출
 def detect_annotation_object(image):
+    logger.debug('Detecting annotation objects')
     print('call detect_annotation_object')
 
     # Extract Red image
@@ -49,6 +54,7 @@ def detect_annotation_object(image):
     return annotation_data
 
 def draw_ocr_result(image, main_text_area, text_data, annotation_area):
+    logger.debug('Drawing OCR result')
     print('call draw_ocr_result')
 
     image = Image.fromarray(image)
@@ -66,6 +72,7 @@ def draw_ocr_result(image, main_text_area, text_data, annotation_area):
 
 
 def extract_main_text_using_pitch(text_data):
+    logger.debug("Extracting main text using pitch")
     print("call extract_main_text_using_pitch")
 
     def get_y_pos(data):
@@ -104,6 +111,7 @@ def extract_main_text_using_pitch(text_data):
 
 # 모폴로지 연산을 사용하여 이미지에서 텍스트의 영역을 탐지
 def detect_text_area(image):
+    logger.debug('Detecting text area')
     print('call detect_text_area')
 
     # Morphology - Threshold
@@ -131,6 +139,7 @@ def detect_text_area(image):
 # start ocr
 # 저장된 이미지의 경로를 불러와서 해당 이미지로 ocr을 수행
 def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
+    logger.info("Starting OCR for image: %s", image_path)
     print("call do_ocr")
 
     total_time_start = time()
@@ -166,6 +175,7 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
             text_image = draw_ocr_result(text_image, [], data, [])
     
     # check ocr time
+    logger.debug(f'OCR Time : {time() - ocr_time_start:.2f}s')
     print(f'OCR Time : {time() - ocr_time_start:.2f}s')
 
     if len(text_data) == 0:
@@ -196,7 +206,8 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
         annotation_text.append(text_tmp[0][1])
         if debug:
             show_image(anno_img)
-            
+    
+    logger.debug(f'Annotation OCR Time : {time() - ocr_time_start:.2f}s')
     print(f'Annotation OCR Time : {time() - ocr_time_start:.2f}s')
 
     # Text post-processing
@@ -214,7 +225,7 @@ def do_ocr(image_path, pyramid_level=2, remove_text=(), debug=False):
 
     print(f'Total time : {time() - total_time_start:.2f}s')
     print('end do_ocr')
-
+    logger.info(f'Total OCR time: {time() - total_time_start:.2f}s')
     return text, annotation_text
 
 # Example Code

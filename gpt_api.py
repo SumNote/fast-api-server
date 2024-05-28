@@ -1,5 +1,10 @@
-import json
+import json, logging
 from openai import OpenAI
+
+
+# 로깅 설정
+logging.basicConfig(level=logging.DEBUG)
+logger = logging.getLogger("gpt_api")
 
 # API Key Load
 with open('./secrets.json') as f:
@@ -236,6 +241,7 @@ quiz_test_data1 = '''
 
 # 노트 생성
 def gpt_sum(data,annotation): # annotation은 배열 형태로 제공되어야함
+    logger.info("Calling gpt_sum with data: %s and annotation: %s", data, annotation)
     # 역할 부여 + 예시문 제공
     messages = [
         {
@@ -270,7 +276,7 @@ def gpt_sum(data,annotation): # annotation은 배열 형태로 제공되어야�
     # 프롬프트 삽입, 모델 선택
     completion = client.chat.completions.create(
         messages=messages,
-        model="gpt-4",
+        model="gpt-4o",
     )
 
     # 양쪽 끝 공백 제거
@@ -279,10 +285,13 @@ def gpt_sum(data,annotation): # annotation은 배열 형태로 제공되어야�
     print("=============NOTE RESULT================")
     print(result)
     print("=======================================")
+
+    logger.debug("gpt_sum result: %s", result)
     return result
 
 # 퀴즈 생성
 def gpt_pro(data):
+    logger.info("Calling gpt_pro with data: %s", data)
     # 역할 부여 + 예시문 제공
     messages = [
         {
@@ -326,7 +335,7 @@ def gpt_pro(data):
     # 프롬프트 삽입, 모델 선택
     completion = client.chat.completions.create(
         messages=messages,
-        model="gpt-4",
+        model="gpt-4o",
     )
 
     # 양쪽 끝 공백 제거
@@ -335,6 +344,7 @@ def gpt_pro(data):
     print("=============QUIZ RESULT================")
     print(result)
     print("=======================================")
+    logger.debug("gpt_pro result: %s", result)
     return result
 
 
